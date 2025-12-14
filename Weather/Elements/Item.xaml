@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Weather.Elements"
-             mc:Ignorable="d">
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>
@@ -15,9 +16,9 @@
         </Grid.ColumnDefinitions>
 
         <Label x:Name="lHour"/>
-        <Label x:Name="lCondition" Grid.ColumnSpan="2"/>
-        <Label x:Name="lHumidity" Grid.ColumnSpan="3"/>
-        <Label x:Name="lPrecType" Grid.ColumnSpan="4"/>
-        <Label x:Name="lTemp" Grid.ColumnSpan="5"/>
+        <Label x:Name="lCondition" Grid.Column="1"/>
+        <Label x:Name="lHumidity" Grid.Column="2"/>
+        <Label x:Name="lPrecType" Grid.Column="3"/>
+        <Label x:Name="lTemp" Grid.Column="4"/>
     </Grid>
 </UserControl>
