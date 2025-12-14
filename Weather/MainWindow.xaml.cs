@@ -30,14 +30,22 @@ namespace Weather
             response = await GetWeather.Get(58.009671f, 56.226184f);
             Create(0);
 
+            foreach(Forecast forecast in response.forecasts)
+            {
+                Days.Items.Add(forecast.date.ToString("dd.MM.yyyy"));
+            }
         }
 
         public void Create(int idForecast)
         {
+            parent.Children.Clear();
             foreach( Hour hour in response.forecasts[idForecast].hours)
             {
                 parent.Children.Add(new Elements.Item(hour));
             }
         }
+
+        private void SelectDay(object sender, SelectionChangedEventArgs e) =>
+            Create(Days.SelectedIndex);
     }
 }
