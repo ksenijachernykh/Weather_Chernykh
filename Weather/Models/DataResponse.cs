@@ -83,5 +83,29 @@ namespace Weather.Models
             }
             return result;
         }
+
+        public string ToPrecType()
+        {
+            string result = "";
+            switch (this.prec_type)
+            {
+                case 0:
+                    result = "без осадков";
+                    break;
+                case 1:
+                    result = "дождь";
+                    break;
+                case 2:
+                    result = "дождь со снегом";
+                    break;
+                case 3:
+                    result = "снег";
+                    break;
+                case 4:
+                    result = "град";
+                    break;
+            }
+            return result;
+        }
     }
 }
