@@ -1,52 +1,187 @@
 ﻿<Window x:Class="Weather.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Weather"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" MinHeight="450" MinWidth="800">
-    <Grid>
+        Title="Прогноз погоды" 
+        Height="600" 
+        Width="800"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid Background="#FAFAFA">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Margin="10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+        <!-- Панель управления -->
+        <Border Grid.Row="0" 
+                Background="#FFFFFF" 
+                Padding="15"
+                BorderBrush="#E8EAED"
+                BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <TextBlock Text="Город:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Text="Город:" 
+                           VerticalAlignment="Center" 
+                           FontSize="14"
+                           Foreground="#1A1A1A"
+                           Margin="0,0,10,0"/>
 
-            <TextBox 
-                x:Name="CityTextBox"
-                Grid.Column="1"
-                Text="Пермь"
-                VerticalAlignment="Center"
-                Margin="0,0,10,0"/>
+                <TextBox x:Name="CityTextBox"
+                         Grid.Column="1"
+                         Text="Пермь"
+                         VerticalAlignment="Center"
+                         FontSize="14"
+                         Foreground="#1A1A1A"
+                         Background="#F8F9FA"
+                         BorderBrush="#D1D5DB"
+                         Padding="8"
+                         Margin="0,0,10,0"/>
 
-            <Button
-                Grid.Column="2"
-                Content="Получить погоду"
-                Width="120"
-                Margin="0,0,10,0"
-                Click="GetWeatherByCity"/>
+                <Button Grid.Column="2"
+                        Content="Получить погоду"
+                        Background="#3B82F6"
+                        Foreground="White"
+                        FontSize="12"
+                        FontWeight="SemiBold"
+                        Padding="12,8"
+                        Margin="0,0,10,0"
+                        Cursor="Hand"
+                        BorderBrush="#2563EB"
+                        Click="UpdateWeather">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
 
-            <ComboBox 
-                x:Name="Days"
-                Grid.Column="3"
-                SelectionChanged="SelectDay"
-                Width="200"/>
+                <ComboBox x:Name="Days"
+                          Grid.Column="3"
+                          Width="150"
+                          FontSize="14"
+                          Foreground="#1A1A1A"
+                          Background="#FFFFFF"
+                          BorderBrush="#D1D5DB"
+                          Padding="8"
+                          VerticalAlignment="Center"
+                          SelectionChanged="SelectDay"/>
+            </Grid>
+        </Border>
+
+        <!-- Основной контент -->
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Панель информации -->
+            <Border Grid.Row="0"
+                    Background="#F0F9FF"
+                    Padding="10"
+                    Margin="10,10,10,5"
+                    CornerRadius="8"
+                    BorderBrush="#E0F2FE"
+                    BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock x:Name="StatusText"
+                               Text="Готов к работе..."
+                               FontSize="12"
+                               Foreground="#075985"
+                               VerticalAlignment="Center"/>
+
+                    <Border Grid.Column="1"
+                            Background="#0EA5E9"
+                            CornerRadius="12"
+                            Padding="8,4"
+                            Margin="5,0">
+                        <TextBlock x:Name="RequestCounter" 
+                                   Text="Запросов: 0/50" 
+                                   Foreground="White" 
+                                   FontSize="11"
+                                   FontWeight="SemiBold"/>
+                    </Border>
+
+             
+                </Grid>
+            </Border>
+
+            <!-- Список погоды -->
+            <Border Grid.Row="1"
+                    Background="#FFFFFF"
+                    Margin="10,5,10,10"
+                    CornerRadius="8"
+                    BorderBrush="#E5E7EB"
+                    BorderThickness="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Заголовки -->
+                    <Border Grid.Row="0" 
+                            Background="#F8FAFC" 
+                            Padding="12"
+                            CornerRadius="8,8,0,0"
+                            BorderBrush="#E5E7EB"
+                            BorderThickness="0,0,0,1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="1*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" 
+                                       Text="Время" 
+                                       FontWeight="SemiBold"
+                                       Foreground="#374151"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" 
+                                       Text="Погодные условия" 
+                                       FontWeight="SemiBold"
+                                       Foreground="#374151"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="2" 
+                                       Text="Влажность" 
+                                       FontWeight="SemiBold"
+                                       Foreground="#374151"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="3" 
+                                       Text="Осадки" 
+                                       FontWeight="SemiBold"
+                                       Foreground="#374151"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="4" 
+                                       Text="Температура" 
+                                       FontWeight="SemiBold"
+                                       Foreground="#374151"
+                                       HorizontalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Список часов -->
+                    <ScrollViewer Grid.Row="1" 
+                                  VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="parent"/>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
         </Grid>
-
-        <ScrollViewer Grid.Row="1" Margin="10,0,10,10">
-            <StackPanel x:Name="parent">
-
-            </StackPanel>
-        </ScrollViewer>
     </Grid>
 </Window>
