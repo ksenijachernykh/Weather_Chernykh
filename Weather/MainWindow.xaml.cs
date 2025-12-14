@@ -18,16 +18,26 @@ namespace Weather
     /// </summary>
     public partial class MainWindow : Window
     {
+        DataResponse response;
         public MainWindow()
         {
             InitializeComponent();
             Init();
-            
         }
 
         private async void Init()
         {
-            DataResponse response = await GetWeather.Get(58.009671f, 56.226184f);
+            response = await GetWeather.Get(58.009671f, 56.226184f);
+            Create(0);
+
+        }
+
+        public void Create(int idForecast)
+        {
+            foreach( Hour hour in response.forecasts[idForecast].hours)
+            {
+                parent.Children.Add(new Elements.Item(hour));
+            }
         }
     }
 }
