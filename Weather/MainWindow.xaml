@@ -11,6 +11,16 @@
             x:Name="Days"
             SelectionChanged="SelectDay"
             VerticalAlignment="Top" HorizontalAlignment="Left" Width="200" Margin="10"/>
+
+        <Button
+            Content="Обновить данные"
+            Width="200"
+            Margin="0,10,10,0"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Right"
+            Click="UpdateWeather"/>
+        
+
         <ScrollViewer Margin="10,37,10,10">
             <StackPanel x:Name="parent">
                 

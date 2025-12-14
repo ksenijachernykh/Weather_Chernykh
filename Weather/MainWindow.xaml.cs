@@ -47,5 +47,10 @@ namespace Weather
 
         private void SelectDay(object sender, SelectionChangedEventArgs e) =>
             Create(Days.SelectedIndex);
+
+        private void UpdateWeather(object sender, RoutedEventArgs e)
+        {
+            Init();
+        }
     }
 }
