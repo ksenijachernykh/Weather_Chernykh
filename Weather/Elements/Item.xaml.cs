@@ -26,6 +26,7 @@ namespace Weather.Elements
             InitializeComponent();
             lHour.Content = hour.hour;
             lCondition.Content = hour.ToCondition();
+            lHumidity.Content = hour.humidity + "%";
         }
     }
 }
