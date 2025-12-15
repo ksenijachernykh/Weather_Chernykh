@@ -13,7 +13,7 @@ namespace Weather.Classes
         private static string connectionString = "Server=localhost;Port=3306;Database=weather_cache;Uid=root;Pwd=;CharSet=utf8mb4;Allow User Variables=True";
 
         public static readonly int DAILY_LIMIT = 50;
-        private static readonly int CACHE_EXPIRE_MINUTES = 60;
+        private static readonly int CACHE_EXPIRE_MINUTES = 30;
 
         static WeatherCache()
         {
@@ -60,7 +60,7 @@ namespace Weather.Classes
 
                 var weatherData = await GetWeather.Get(lat, lon);
 
-                await SaveToCache(cityName, lat, lon, weatherData);
+                await SaveToCache(cityName, weatherData);
 
                 return weatherData;
             }
@@ -72,7 +72,7 @@ namespace Weather.Classes
                     Console.WriteLine($"⚠ Ошибка API! Используем устаревшие данные из кэша: {ex.Message}");
                     return fallbackData;
                 }
-                throw new Exception($"Не удалось получить данные о погете: {ex.Message}");
+                throw new Exception($"Не удалось получить данные о погоде: {ex.Message}");
             }
         }
 
@@ -88,9 +88,7 @@ namespace Weather.Classes
                     await connection.OpenAsync();
 
                     string query = @"
-                        SELECT response_data, request_count, 
-                               TIMESTAMPDIFF(MINUTE, last_requested, NOW()) as minutes_passed,
-                               created_at, expires_at
+                        SELECT response_data
                         FROM weather_cache 
                         WHERE city_name = @city 
                         AND expires_at > NOW() 
@@ -106,31 +104,7 @@ namespace Weather.Classes
                             if (await reader.ReadAsync())
                             {
                                 string json = reader.GetString("response_data");
-                                int requestCount = reader.GetInt32("request_count");
-                                int minutesPassed = reader.GetInt32("minutes_passed");
-                                DateTime created = reader.GetDateTime("created_at");
-                                DateTime expires = reader.GetDateTime("expires_at");
-
                                 Console.WriteLine($"✓ Данные из кэша. Город: {cityName}");
-                                Console.WriteLine($"  Создан: {created:dd.MM HH:mm}, Истекает: {expires:dd.MM HH:mm}");
-                                Console.WriteLine($"  Запросов: {requestCount}, Прошло минут: {minutesPassed}");
-
-                                await reader.CloseAsync();
-
-
-                                string updateQuery = @"
-                                    UPDATE weather_cache 
-                                    SET request_count = request_count + 1, 
-                                        last_requested = NOW() 
-                                    WHERE city_name = @city 
-                                    AND expires_at > NOW()";
-
-                                using (var updateCmd = new MySqlCommand(updateQuery, connection))
-                                {
-                                    updateCmd.Parameters.AddWithValue("@city", cityName);
-                                    await updateCmd.ExecuteNonQueryAsync();
-                                }
-
                                 return JsonConvert.DeserializeObject<DataResponse>(json);
                             }
                         }
@@ -157,8 +131,7 @@ namespace Weather.Classes
                     await connection.OpenAsync();
 
                     string query = @"
-                        SELECT response_data, 
-                               TIMESTAMPDIFF(MINUTE, expires_at, NOW()) as expired_minutes
+                        SELECT response_data
                         FROM weather_cache 
                         WHERE city_name = @city 
                         ORDER BY created_at DESC 
@@ -173,10 +146,7 @@ namespace Weather.Classes
                             if (await reader.ReadAsync())
                             {
                                 string json = reader.GetString("response_data");
-                                int expiredMinutes = reader.GetInt32("expired_minutes");
-
-                                Console.WriteLine($"⚠ Используем устаревшие данные. Истекло: {expiredMinutes} мин назад");
-
+                                Console.WriteLine($"⚠ Используем устаревшие данные из кэша");
                                 return JsonConvert.DeserializeObject<DataResponse>(json);
                             }
                         }
@@ -194,14 +164,13 @@ namespace Weather.Classes
         /// <summary>
         /// Сохранить данные в кэш
         /// </summary>
-        public static async Task SaveToCache(string cityName, float lat, float lon, DataResponse data)
+        public static async Task SaveToCache(string cityName, DataResponse data)
         {
             try
             {
                 using (var connection = new MySqlConnection(connectionString))
                 {
                     await connection.OpenAsync();
-
 
                     string deleteQuery = "DELETE FROM weather_cache WHERE city_name = @city";
                     using (var deleteCmd = new MySqlCommand(deleteQuery, connection))
@@ -210,17 +179,14 @@ namespace Weather.Classes
                         await deleteCmd.ExecuteNonQueryAsync();
                     }
 
-      
                     string insertQuery = @"
                         INSERT INTO weather_cache 
-                        (city_name, latitude, longitude, response_data, created_at, expires_at, request_count, last_requested) 
-                        VALUES (@city, @lat, @lon, @data, NOW(), DATE_ADD(NOW(), INTERVAL @minutes MINUTE), 1, NOW())";
+                        (city_name, response_data, created_at, expires_at) 
+                        VALUES (@city, @data, NOW(), DATE_ADD(NOW(), INTERVAL @minutes MINUTE))";
 
                     using (var cmd = new MySqlCommand(insertQuery, connection))
                     {
                         cmd.Parameters.AddWithValue("@city", cityName);
-                        cmd.Parameters.AddWithValue("@lat", lat);
-                        cmd.Parameters.AddWithValue("@lon", lon);
                         cmd.Parameters.AddWithValue("@data", JsonConvert.SerializeObject(data));
                         cmd.Parameters.AddWithValue("@minutes", CACHE_EXPIRE_MINUTES);
 
@@ -264,20 +230,17 @@ namespace Weather.Classes
                         }
                     }
 
-    
                     if (currentCount >= DAILY_LIMIT)
                     {
                         Console.WriteLine($"✗ Лимит исчерпан! Сегодня уже {currentCount}/{DAILY_LIMIT} запросов");
                         return false;
                     }
 
-          
                     string updateQuery = @"
-                        INSERT INTO request_limits (user_id, request_date, request_count, last_request) 
-                        VALUES (@userId, @date, 1, NOW()) 
+                        INSERT INTO request_limits (user_id, request_date, request_count) 
+                        VALUES (@userId, @date, 1) 
                         ON DUPLICATE KEY UPDATE 
-                        request_count = request_count + 1, 
-                        last_request = NOW()";
+                        request_count = request_count + 1";
 
                     using (var updateCmd = new MySqlCommand(updateQuery, connection))
                     {
@@ -313,7 +276,6 @@ namespace Weather.Classes
                     int cachedCities = 0;
                     string cacheInfo = "";
 
- 
                     string limitQuery = "SELECT request_count FROM request_limits WHERE user_id = @userId AND request_date = @date";
                     using (var limitCmd = new MySqlCommand(limitQuery, connection))
                     {
@@ -327,7 +289,6 @@ namespace Weather.Classes
                         }
                     }
 
-     
                     string cacheQuery = @"
                         SELECT 
                             COUNT(DISTINCT city_name) as city_count,
