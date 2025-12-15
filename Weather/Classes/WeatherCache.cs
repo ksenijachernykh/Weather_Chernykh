@@ -13,7 +13,7 @@ namespace Weather.Classes
         private static string connectionString = "Server=localhost;Port=3306;Database=weather_cache;Uid=root;Pwd=;CharSet=utf8mb4;Allow User Variables=True";
 
         public static readonly int DAILY_LIMIT = 50;
-        private static readonly int CACHE_EXPIRE_MINUTES = 30;
+        private static readonly int CACHE_EXPIRE_MINUTES = 1;
 
         static WeatherCache()
         {
@@ -120,7 +120,7 @@ namespace Weather.Classes
         }
 
         /// <summary>
-        /// Получить последние доступные данные (даже устаревшие)
+        /// Получить последние доступные данные 
         /// </summary>
         private static async Task<DataResponse> GetLastCachedData(string cityName)
         {
@@ -146,7 +146,7 @@ namespace Weather.Classes
                             if (await reader.ReadAsync())
                             {
                                 string json = reader.GetString("response_data");
-                                Console.WriteLine($"⚠ Используем устаревшие данные из кэша");
+                                Console.WriteLine($"Используем устаревшие данные из кэша");
                                 return JsonConvert.DeserializeObject<DataResponse>(json);
                             }
                         }
