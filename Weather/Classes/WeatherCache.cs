@@ -28,15 +28,23 @@ namespace Weather.Classes
             try
             {
                 bool canRequest = await CheckAndIncrementLimit(userId);
+
                 if (!canRequest)
                 {
+                    Console.WriteLine($"Лимит запросов исчерпан, ищем актуальные данные в кэше...");
 
-                    Console.WriteLine($"Лимит запросов исчерпан, пытаемся взять данные из кэша...");
                     var cachedData = await GetCachedWeather(cityName);
                     if (cachedData != null)
                     {
                         return cachedData;
                     }
+                    var fallbackData = await GetLastCachedData(cityName);
+                    if (fallbackData != null)
+                    {
+                        Console.WriteLine($"⚠ Лимит исчерпан! Используем устаревшие данные из кэша");
+                        return fallbackData;
+                    }
+
                     throw new Exception($"Дневной лимит запросов ({DAILY_LIMIT}) исчерпан. Попробуйте завтра.");
                 }
 
@@ -46,11 +54,9 @@ namespace Weather.Classes
                     return cachedWeather;
                 }
 
-
                 var coordinates = await Geocoder.GetCoordinates(cityName);
                 var lat = coordinates.lat;
                 var lon = coordinates.lon;
-
 
                 var weatherData = await GetWeather.Get(lat, lon);
 
@@ -60,14 +66,13 @@ namespace Weather.Classes
             }
             catch (Exception ex)
             {
-
                 var fallbackData = await GetLastCachedData(cityName);
                 if (fallbackData != null)
                 {
-                    Console.WriteLine($"Используем устаревшие данные из кэша: {ex.Message}");
+                    Console.WriteLine($"⚠ Ошибка API! Используем устаревшие данные из кэша: {ex.Message}");
                     return fallbackData;
                 }
-                throw new Exception($"Не удалось получить данные о погоде: {ex.Message}");
+                throw new Exception($"Не удалось получить данные о погете: {ex.Message}");
             }
         }
 
