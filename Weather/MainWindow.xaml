@@ -11,8 +11,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-
-        <!-- Панель управления -->
+        
         <Border Grid.Row="0" 
                 Background="#FFFFFF" 
                 Padding="15"
@@ -74,7 +73,6 @@
             </Grid>
         </Border>
 
-        <!-- Основной контент -->
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -118,7 +116,6 @@
                 </Grid>
             </Border>
 
-            <!-- Список погоды -->
             <Border Grid.Row="1"
                     Background="#FFFFFF"
                     Margin="10,5,10,10"
@@ -131,7 +128,6 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Заголовки -->
                     <Border Grid.Row="0" 
                             Background="#F8FAFC" 
                             Padding="12"
@@ -175,7 +171,6 @@
                         </Grid>
                     </Border>
 
-                    <!-- Список часов -->
                     <ScrollViewer Grid.Row="1" 
                                   VerticalScrollBarVisibility="Auto">
                         <StackPanel x:Name="parent"/>

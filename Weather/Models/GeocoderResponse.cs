@@ -48,6 +48,6 @@ namespace Weather.Models
 
     public class Point
     {
-        public string pos { get; set; } // формат: "долгота широта"
+        public string pos { get; set; } 
     }
 }

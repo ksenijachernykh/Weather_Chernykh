@@ -45,7 +45,6 @@ namespace Weather.Classes
             }
         }
 
-        // Новый метод для получения погоды с кэшированием
         public static async Task<DataResponse> GetWeatherData(string cityName, string userId)
         {
             return await WeatherCache.GetWeatherData(cityName, userId);

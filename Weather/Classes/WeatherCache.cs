@@ -10,7 +10,6 @@ namespace Weather.Classes
 {
     public class WeatherCache
     {
-        // Настройки подключения к MySQL (phpMyAdmin)
         private static string connectionString = "Server=localhost;Port=3306;Database=weather_cache;Uid=root;Pwd=;CharSet=utf8mb4;Allow User Variables=True";
 
         public static readonly int DAILY_LIMIT = 50;
@@ -18,7 +17,6 @@ namespace Weather.Classes
 
         static WeatherCache()
         {
-            // Автоматически очищаем старый кэш при запуске
             Task.Run(() => CleanupOldCache());
         }
 
@@ -29,11 +27,10 @@ namespace Weather.Classes
         {
             try
             {
-                // Проверяем лимит запросов
                 bool canRequest = await CheckAndIncrementLimit(userId);
                 if (!canRequest)
                 {
-                    // Лимит исчерпан, пробуем взять из кэша
+
                     Console.WriteLine($"Лимит запросов исчерпан, пытаемся взять данные из кэша...");
                     var cachedData = await GetCachedWeather(cityName);
                     if (cachedData != null)
@@ -43,29 +40,27 @@ namespace Weather.Classes
                     throw new Exception($"Дневной лимит запросов ({DAILY_LIMIT}) исчерпан. Попробуйте завтра.");
                 }
 
-                // Пытаемся получить данные из кэша
                 var cachedWeather = await GetCachedWeather(cityName);
                 if (cachedWeather != null)
                 {
                     return cachedWeather;
                 }
 
-                // Если в кэше нет, получаем координаты и погоду
+
                 var coordinates = await Geocoder.GetCoordinates(cityName);
                 var lat = coordinates.lat;
                 var lon = coordinates.lon;
 
-                // Получаем погоду с API
+
                 var weatherData = await GetWeather.Get(lat, lon);
 
-                // Сохраняем в кэш
                 await SaveToCache(cityName, lat, lon, weatherData);
 
                 return weatherData;
             }
             catch (Exception ex)
             {
-                // Пробуем получить последние доступные данные из кэша
+
                 var fallbackData = await GetLastCachedData(cityName);
                 if (fallbackData != null)
                 {
@@ -117,7 +112,7 @@ namespace Weather.Classes
 
                                 await reader.CloseAsync();
 
-                                // Обновляем статистику использования
+
                                 string updateQuery = @"
                                     UPDATE weather_cache 
                                     SET request_count = request_count + 1, 
@@ -202,7 +197,7 @@ namespace Weather.Classes
                 {
                     await connection.OpenAsync();
 
-                    // Удаляем старые записи для этого города
+
                     string deleteQuery = "DELETE FROM weather_cache WHERE city_name = @city";
                     using (var deleteCmd = new MySqlCommand(deleteQuery, connection))
                     {
@@ -210,7 +205,7 @@ namespace Weather.Classes
                         await deleteCmd.ExecuteNonQueryAsync();
                     }
 
-                    // Добавляем новую запись
+      
                     string insertQuery = @"
                         INSERT INTO weather_cache 
                         (city_name, latitude, longitude, response_data, created_at, expires_at, request_count, last_requested) 
@@ -264,14 +259,14 @@ namespace Weather.Classes
                         }
                     }
 
-                    // Проверяем лимит
+    
                     if (currentCount >= DAILY_LIMIT)
                     {
                         Console.WriteLine($"✗ Лимит исчерпан! Сегодня уже {currentCount}/{DAILY_LIMIT} запросов");
                         return false;
                     }
 
-                    // Увеличиваем счётчик
+          
                     string updateQuery = @"
                         INSERT INTO request_limits (user_id, request_date, request_count, last_request) 
                         VALUES (@userId, @date, 1, NOW()) 
@@ -293,7 +288,6 @@ namespace Weather.Classes
             catch (Exception ex)
             {
                 Console.WriteLine($"Ошибка при проверке лимита: {ex.Message}");
-                // В случае ошибки разрешаем запрос
                 return true;
             }
         }
@@ -314,7 +308,7 @@ namespace Weather.Classes
                     int cachedCities = 0;
                     string cacheInfo = "";
 
-                    // Получаем количество запросов за сегодня
+ 
                     string limitQuery = "SELECT request_count FROM request_limits WHERE user_id = @userId AND request_date = @date";
                     using (var limitCmd = new MySqlCommand(limitQuery, connection))
                     {
@@ -328,7 +322,7 @@ namespace Weather.Classes
                         }
                     }
 
-                    // Получаем информацию о кэше
+     
                     string cacheQuery = @"
                         SELECT 
                             COUNT(DISTINCT city_name) as city_count,
